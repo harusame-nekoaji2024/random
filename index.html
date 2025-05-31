@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>抽選ページ</title>
+  <title>ガチャ抽選体感</title>
   <style>
     body {
       font-family: sans-serif;
@@ -39,12 +39,12 @@
   </style>
 </head>
 <body>
-  <h1>抽選ガチャ</h1>
-  <button onclick="drawPrize()">ボタンを押して抽選！</button>
+  <h1>抽選ガチャの当選確率再現</h1>
+  <button onclick="drawPrize()">ボタンを押して抽選</button>
   <div id="result"></div>
 
   <div id="log">
-    <h2>当選回数と賞金</h2>
+    <h2>当選回数と使った費用</h2>
     <table>
       <tr><th>賞</th><th>回数</th><th>金額</th></tr>
       <tr><td>S賞</td><td id="count-s">0</td><td id="amount-s">0</td></tr>
@@ -56,7 +56,7 @@
     </table>
     <div id="summary">
       <p>総回数: <span id="total-count">0</span> 回</p>
-      <p>累計金額: <span id="total-cost">0</span> 円</p>
+      <p>累計費用: <span id="total-cost">0</span> 円</p>
     </div>
   </div>
 
