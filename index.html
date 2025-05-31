@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ガチャ抽選体感</title>
+  <title>抽選ページ</title>
   <style>
     body {
       font-family: sans-serif;
@@ -39,24 +39,24 @@
   </style>
 </head>
 <body>
-  <h1>抽選ガチャの当選確率再現</h1>
-  <button onclick="drawPrize()">ボタンを押して抽選</button>
+  <h1>抽選ガチャ</h1>
+  <button onclick="drawPrize()">ボタンを押して抽選！</button>
   <div id="result"></div>
 
   <div id="log">
-    <h2>当選回数と使った費用</h2>
+    <h2>当選回数・金額・確率</h2>
     <table>
-      <tr><th>賞</th><th>回数</th><th>金額</th></tr>
-      <tr><td>S賞</td><td id="count-s">0</td><td id="amount-s">0</td></tr>
-      <tr><td>A賞</td><td id="count-a">0</td><td id="amount-a">0</td></tr>
-      <tr><td>B賞</td><td id="count-b">0</td><td id="amount-b">0</td></tr>
-      <tr><td>C賞</td><td id="count-c">0</td><td id="amount-c">0</td></tr>
-      <tr><td>D賞</td><td id="count-d">0</td><td id="amount-d">0</td></tr>
-      <tr><td>E賞</td><td id="count-e">0</td><td id="amount-e">0</td></tr>
+      <tr><th>賞（確率）</th><th>回数</th><th>金額</th><th>累計確率</th></tr>
+      <tr><td>S賞（5%）</td><td id="count-s">0</td><td id="amount-s">0</td><td id="rate-s">0%</td></tr>
+      <tr><td>A賞（10%）</td><td id="count-a">0</td><td id="amount-a">0</td><td id="rate-a">0%</td></tr>
+      <tr><td>B賞（12%）</td><td id="count-b">0</td><td id="amount-b">0</td><td id="rate-b">0%</td></tr>
+      <tr><td>C賞（18%）</td><td id="count-c">0</td><td id="amount-c">0</td><td id="rate-c">0%</td></tr>
+      <tr><td>D賞（23%）</td><td id="count-d">0</td><td id="amount-d">0</td><td id="rate-d">0%</td></tr>
+      <tr><td>E賞（32%）</td><td id="count-e">0</td><td id="amount-e">0</td><td id="rate-e">0%</td></tr>
     </table>
     <div id="summary">
       <p>総回数: <span id="total-count">0</span> 回</p>
-      <p>累計費用: <span id="total-cost">0</span> 円</p>
+      <p>累計金額: <span id="total-cost">0</span> 円</p>
     </div>
   </div>
 
@@ -101,19 +101,14 @@
     }
 
     function updateCounts() {
-      document.getElementById('count-s').textContent = counts.s;
-      document.getElementById('count-a').textContent = counts.a;
-      document.getElementById('count-b').textContent = counts.b;
-      document.getElementById('count-c').textContent = counts.c;
-      document.getElementById('count-d').textContent = counts.d;
-      document.getElementById('count-e').textContent = counts.e;
+      const updateRow = (key) => {
+        document.getElementById(`count-${key}`).textContent = counts[key];
+        document.getElementById(`amount-${key}`).textContent = counts[key] * 1000;
+        const rate = total > 0 ? ((counts[key] / total) * 100).toFixed(1) : '0';
+        document.getElementById(`rate-${key}`).textContent = rate + '%';
+      };
 
-      document.getElementById('amount-s').textContent = counts.s * 1000;
-      document.getElementById('amount-a').textContent = counts.a * 1000;
-      document.getElementById('amount-b').textContent = counts.b * 1000;
-      document.getElementById('amount-c').textContent = counts.c * 1000;
-      document.getElementById('amount-d').textContent = counts.d * 1000;
-      document.getElementById('amount-e').textContent = counts.e * 1000;
+      ['s','a','b','c','d','e'].forEach(updateRow);
 
       document.getElementById('total-count').textContent = total;
       document.getElementById('total-cost').textContent = total * 1000;
