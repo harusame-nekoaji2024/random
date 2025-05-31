@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>抽選ページ</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -14,6 +15,7 @@
       padding: 10px 20px;
       font-size: 1.2em;
       cursor: pointer;
+      margin: 5px;
     }
     #result {
       margin-top: 30px;
@@ -36,11 +38,16 @@
       margin-top: 20px;
       font-size: 1.2em;
     }
+    canvas {
+      margin-top: 30px;
+      max-width: 600px;
+    }
   </style>
 </head>
 <body>
   <h1>抽選ガチャ</h1>
   <button onclick="drawPrize()">ボタンを押して抽選！</button>
+  <button onclick="drawMultiple(1000)">一括で1000回回す！</button>
   <div id="result"></div>
 
   <div id="log">
@@ -57,61 +64,106 @@
     <div id="summary">
       <p>総回数: <span id="total-count">0</span> 回</p>
       <p>累計金額: <span id="total-cost">0</span> 円</p>
+      <p>想定価値: <span id="total-value">0</span> 円</p>
+      <p>ROI: <span id="roi">0</span>%</p>
     </div>
   </div>
 
+  <canvas id="pieChart"></canvas>
+  <canvas id="lineChart"></canvas>
+
   <script>
-    const counts = {
-      s: 0,
-      a: 0,
-      b: 0,
-      c: 0,
-      d: 0,
-      e: 0
-    };
+    const counts = { s: 0, a: 0, b: 0, c: 0, d: 0, e: 0 };
+    const values = { s: 10000, a: 5000, b: 3000, c: 2000, d: 1000, e: 500 };
+    const history = [];
     let total = 0;
 
     function drawPrize() {
       const rand = Math.random() * 100;
-      let prize = '';
-
-      if (rand < 5) {
-        prize = '🎉 S賞 当選！';
-        counts.s++;
-      } else if (rand < 15) {
-        prize = '🥇 A賞 当選！';
-        counts.a++;
-      } else if (rand < 27) {
-        prize = '🥈 B賞 当選！';
-        counts.b++;
-      } else if (rand < 45) {
-        prize = '🥉 C賞 当選！';
-        counts.c++;
-      } else if (rand < 68) {
-        prize = '🏅 D賞 当選！';
-        counts.d++;
-      } else {
-        prize = '🎁 E賞 当選！';
-        counts.e++;
-      }
-
+      let key = '';
+      if (rand < 5) key = 's';
+      else if (rand < 15) key = 'a';
+      else if (rand < 27) key = 'b';
+      else if (rand < 45) key = 'c';
+      else if (rand < 68) key = 'd';
+      else key = 'e';
+      counts[key]++;
       total++;
-      document.getElementById('result').textContent = prize;
+      document.getElementById('result').textContent = `当選：${key.toUpperCase()}賞`;
       updateCounts();
     }
 
+    function drawMultiple(times) {
+      for (let i = 0; i < times; i++) drawPrizeSilent();
+      updateCounts();
+    }
+
+    function drawPrizeSilent() {
+      const rand = Math.random() * 100;
+      let key = '';
+      if (rand < 5) key = 's';
+      else if (rand < 15) key = 'a';
+      else if (rand < 27) key = 'b';
+      else if (rand < 45) key = 'c';
+      else if (rand < 68) key = 'd';
+      else key = 'e';
+      counts[key]++;
+      total++;
+    }
+
     function updateCounts() {
-      const updateRow = (key) => {
+      let totalValue = 0;
+      ['s','a','b','c','d','e'].forEach(key => {
         document.getElementById(`count-${key}`).textContent = counts[key];
-        document.getElementById(`amount-${key}`).textContent = counts[key] * 1000;
+        const amount = counts[key] * 1000;
+        document.getElementById(`amount-${key}`).textContent = amount;
         const rate = total > 0 ? ((counts[key] / total) * 100).toFixed(1) : '0';
         document.getElementById(`rate-${key}`).textContent = rate + '%';
-      };
-
-      ['s','a','b','c','d','e'].forEach(updateRow);
+        totalValue += counts[key] * values[key];
+      });
 
       document.getElementById('total-count').textContent = total;
       document.getElementById('total-cost').textContent = total * 1000;
+      document.getElementById('total-value').textContent = totalValue;
+      const roi = total > 0 ? ((totalValue / (total * 1000)) * 100).toFixed(1) : '0';
+      document.getElementById('roi').textContent = roi;
+
+      updateCharts();
+    }
+
+    let pieChart = new Chart(document.getElementById('pieChart').getContext('2d'), {
+      type: 'pie',
+      data: {
+        labels: ['S', 'A', 'B', 'C', 'D', 'E'],
+        datasets: [{
+          label: '当選割合',
+          data: [0, 0, 0, 0, 0, 0],
+          backgroundColor: ['#f00', '#f80', '#ff0', '#0f0', '#0ff', '#00f']
+        }]
+      }
+    });
+
+    let lineChart = new Chart(document.getElementById('lineChart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'ROI (%)',
+          data: [],
+          borderColor: '#007bff',
+          fill: false
+        }]
+      }
+    });
+
+    function updateCharts() {
+      pieChart.data.datasets[0].data = ['s','a','b','c','d','e'].map(k => counts[k]);
+      pieChart.update();
+
+      lineChart.data.labels.push(total);
+      const roi = total > 0 ? ((['s','a','b','c','d','e'].reduce((sum, k) => sum + counts[k] * values[k], 0) / (total * 1000)) * 100).toFixed(1) : '0';
+      lineChart.data.datasets[0].data.push(roi);
+      lineChart.update();
     }
   </script>
 </body>
